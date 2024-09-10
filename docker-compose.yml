@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/:/api/src
+    tty: true
+    stdin_open: true
+    ports:
+      - "8080:8080"
+    networks:
+      - task-manager-network
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    image: next-app
+    container_name: next-app
+    tty: true
+    stdin_open: true
+    ports:
+      - 3000:3000
+    networks:
+      - task-manager-network
+    volumes:
+      - ./frontend/task-manager-app/:/my-app
+      - node_modules:/my-app/node_modules
+    environment:
+     - WATCHPACK_POLLING=true
+    # 以下のコマンドで開発環境として起動する。
+    command: "npm run dev"
+
+volumes:
+  node_modules:
+
+networks:
+  task-manager-network:
+    driver: bridge
