@@ -5,16 +5,20 @@ services:
     restart: always
     tty: true
     environment:
-      MYSQL_DATABASE: sample_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: TaskManager
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql#MYSQL123
       MYSQL_ROOT_PASSWORD: password
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - task-manager-network
     ports: 
       - 3306:3306
-    command: --port 3306
+    # command: --port 3306
     volumes: 
       - ./mysql/initdb.d:/docker-entrypoint-initdb.d
-      - ./mysql/conf.d:/etc/myaql/conf.d
+      - ./mysql/conf.d:/etc/mysql/conf.d
       - ./mysql/log/mysql:/var/log/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysql -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"]
@@ -24,6 +28,7 @@ services:
       timeout: 10s
   
   backend:
+    container_name: go-api
     build:
       context: backend
       dockerfile: Dockerfile
@@ -42,11 +47,11 @@ services:
 
   
   frontend:
+    container_name: next-app
     build:
       context: frontend
       dockerfile: Dockerfile
     image: next-app
-    container_name: next-app
     tty: true
     stdin_open: true
     ports:
