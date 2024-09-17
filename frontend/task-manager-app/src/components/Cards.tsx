@@ -16,20 +16,20 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask}) => {
   return (
-    <div key={task.Task_Id} className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-2">{task.Task_Name}</h2>
-      <p className={`text-lg ${task.Task_Done ? 'text-green-600' : 'text-red-600'}`}>
+    <div key={task.Task_Id} className=" bg-gray-100 shadow-md rounded-lg p-6">
+      <h2 className="text-gray-700 text-xl mb-2">{task.Task_Name}</h2>
+      <p className={`text-lg ${task.Task_Done ? 'text-green-400' : 'text-red-400'}`}>
         {task.Task_Done ? '完了' : '未完了'}
       </p>
       <div className="flex justify-between mt-4">
         <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="text-blue-200 hover:bg-blue-400 bg-white font-bold py-2 px-4 rounded"
           onClick={() => onToggleTask(task.Task_Id)}
         >
           状態切り替え
         </button>
         <button
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-white hover:bg-red-400 text-red-200 font-bold py-2 px-4 rounded"
           onClick={() => onDeleteTask(task.Task_Id)}
         >
           削除

@@ -74,7 +74,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">Todoリスト</h1>
+      <h1 className="text-gray-500 text-2xl font-semibold mb-6 text-center">Task Manager</h1>
       <div className="mb-4">
         <input
           type="text"
@@ -84,7 +84,7 @@ export default function Home() {
           className="border border-gray-300 p-2 mr-2 rounded"
         />
         <button
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          className="border border-gray-300 bg-white hover:bg-green-500 text-green-300 bg py-2 px-4 rounded"
           onClick={addTask}
         >
           追加
@@ -108,65 +108,3 @@ export default function Home() {
   );
 }
 
-
-
-
-
-// // 'use client'
-
-// import Card from "@/components/Cards";
-// import { use, useEffect, useState } from "react";
-
-// interface Task {
-//   Task_id: number;
-//   Task_Name: string;
-//   Task_Done: boolean;
-// }
-
-// export default function Home() {
-//   const tasks = use(fetchTasks());  // データを取得して、すぐに使用
-  
-//   // クライアント側でデータフェッチするときの処理。CORSの処理が必要。
-//   // const [tasks, setTasks] = useState<Task[]>([]); // タスクを管理するstate
-//   // const [error, setError] = useState<string | null>(null); // エラーメッセージ用のstate
-
-//   // useEffect(() => {
-//   //   // データをクライアントサイドでフェッチ
-//   //   const fetchTasks = async () => {
-//   //     try {
-//   //       const res = await fetch('http://localhost:8080/tasks');
-//   //       if (!res.ok) {
-//   //         throw new Error('タスクの取得に失敗しました');
-//   //       }
-//   //       const data: Task[] = await res.json();
-//   //       setTasks(data); // 取得したタスクをstateにセット
-//   //     } catch (err) {
-//   //       setError(err.message); // エラーが発生した場合にエラーメッセージをセット
-//   //     }
-//   //   };
-
-//   //   fetchTasks();
-//   // }, []); // コンポーネントがマウントされたときに一度だけ実行
-
-//   return (
-//     <div className="container mx-auto p-4">
-//       <h1 className="text-2xl font-bold mb-6 text-center">Task Manager!</h1>
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {tasks.map((task) => (
-//           <Card key={task.Task_id} task={task} />
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-// // サーバーサイドでGoAPIからデータを取得
-// async function fetchTasks(): Promise<Task[]> {
-//   const res = await fetch('http://backend:8080/tasks');
-//   if (!res.ok) {
-//     throw new Error('タスクの取得に失敗しました');
-//   }
-//   const data = await res.json();
-//   console.log(data);
-//   return data;
-// }

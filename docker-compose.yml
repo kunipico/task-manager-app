@@ -50,7 +50,7 @@ services:
     container_name: next-app
     build:
       context: frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     image: next-app
     tty: true
     stdin_open: true

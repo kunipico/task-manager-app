@@ -1,15 +1,24 @@
-FROM node:20-alpine
-
-WORKDIR /my-app
-
-COPY ./task-manager-app ./
-# RUN cd /my-app
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY ./task-manager-app .
 RUN npm install
-
-# クラウドなどへのデプロイを考慮して、CMD ["npm", "start"] としている
-# 本番環境用
 RUN npm run build
-CMD ["npm", "start"]
 
-#　開発環境はdocker-compose.ymlの設定で起動する。
+# Serve stage
+FROM nginx:alpine
 
+# NGINX設定ファイルをコンテナにコピー
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Remove default nginx static resources and copy from the builder
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built Next.js application from the builder stage
+COPY --from=builder /app/out /usr/share/nginx/html
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start Nginx server
+CMD ["nginx", "-g", "daemon off;"]
