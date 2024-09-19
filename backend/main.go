@@ -37,10 +37,12 @@ func init() {
 }
 
 func main() {
-	mux := http.NewServeMux()
+	mux := http.NewServeMux() //マルチプレクサ。HTTPメソッドを指定してハンドラを呼び分けられるように登録可能。
 	//リクエストハンドラ
 	// http.HandleFunc("/tasks", tasksHandler)
 	// http.HandleFunc("/tasks/", tasksHandler)
+	
+	// HTTPメソッドとパスを指定して、関数を呼び出せば、swich-caseの処理は必要ない
 	mux.HandleFunc("/tasks", tasksHandler)
 	mux.HandleFunc("/tasks/", tasksHandler)
   // log.Fatal(http.ListenAndServe(":8080", nil))
@@ -57,6 +59,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
+//以下の処理はマルチプレクサを用いた処理に適していないため、修正が必要と思われる。
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -72,70 +75,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func toggleTaskDone(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "無効なIDです", http.StatusBadRequest)
-		return
-	}
-
-	// rows, err := db.Query("SELECT Task_Id, Task_Name, Task_Done FROM Tasks")
-	// if err != nil {
-	// 	http.Error(w, "データベースエラー", http.StatusInternalServerError)
-	// 	return
-	// }
-	// defer rows.Close()
-
-	// var tasks []Task
-	// for rows.Next() {
-	// 	var task Task
-	// 	err := rows.Scan(&task.ID, &task.Name, &task.Done)
-	// 	if err != nil {
-	// 		http.Error(w, "データ取得エラー", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	tasks = append(tasks, task)
-	// }
-
-	var updatedTask Task
-	// グローバルな tasks スライスを参照する
-	err = json.NewDecoder(r.Body).Decode(&updatedTask)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result, err := db.Exec("UPDATE Tasks SET Task_Done = ? WHERE Task_Id = ?", updatedTask.Done, id)
-	if err != nil {
-			http.Error(w, "データベースエラー", http.StatusInternalServerError)
-			return
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-			http.Error(w, "指定されたIDのタスクが見つかりません", http.StatusNotFound)
-			return
-	}
-
-	// 更新されたタスクをクライアントに返す
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(updatedTask)
-
-
-// 	for i, task := range tasks {
-// 		if task.ID == id {
-// 			// タスクの状態を更新
-// 			tasks[i].Done = updatedTask.Done
-// 			w.Header().Set("Content-Type", "application/json")
-// 			json.NewEncoder(w).Encode(tasks[i])
-// 			return
-// 		}
-// 	}
-// 	http.Error(w, "指定されたIDのタスクが見つかりません", http.StatusNotFound)
-}
-
-
+//Task一覧取得処理
 func getTasks(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("SELECT Task_Id, Task_Name, Task_Done FROM Tasks")
 	if err != nil {
@@ -159,6 +99,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
+//Task追加処理
 func addTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	err := json.NewDecoder(r.Body).Decode(&task)
@@ -182,6 +123,7 @@ func addTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
+//Task削除処理
 func deleteTask(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
 	id, err := strconv.Atoi(idStr)
@@ -205,3 +147,39 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+//Task状態変更処理
+func toggleTaskDone(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "無効なIDです", http.StatusBadRequest)
+		return
+	}
+
+	var updatedTask Task
+	// グローバルな tasks スライスを参照する.
+	err = json.NewDecoder(r.Body).Decode(&updatedTask)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := db.Exec("UPDATE Tasks SET Task_Done = ? WHERE Task_Id = ?", updatedTask.Done, id)
+	if err != nil {
+			http.Error(w, "データベースエラー", http.StatusInternalServerError)
+			return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+			http.Error(w, "指定されたIDのタスクが見つかりません", http.StatusNotFound)
+			return
+	}
+
+	// 更新されたタスクをクライアントに返す
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedTask)
+
+}
+

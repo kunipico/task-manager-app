@@ -17,9 +17,9 @@ RUN CGO_ENABLED=0 go build -o main /api/main.go
 # RUN GOOS=linux go build -o ./main
 
 
-
+# Deploy Stage ------------------------------
 # 最終的な image のビルドステージ
-FROM alpine:3.17
+FROM alpine:3.17 AS deploy
 
 WORKDIR /api
 
@@ -29,3 +29,17 @@ COPY --from=builder /api/main .
 EXPOSE 8080
 
 CMD [ "./main" ]
+
+# Local -------------------------------------
+FROM golang:1.22 AS devlop
+
+WORKDIR /api
+
+COPY go.mod main.go ./
+
+RUN go mod tidy
+# ルートディレクトリの中身を app フォルダにコピーする
+COPY . .
+
+RUN go install github.com/air-verse/air@latest
+CMD ["air"]
