@@ -1,6 +1,6 @@
 # 実行ファイル作成用のビルドステージ
 # FROM golang:1.20-alpine3.17 AS builder
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 
 WORKDIR /api
 
@@ -31,15 +31,18 @@ EXPOSE 8080
 CMD [ "./main" ]
 
 # Local -------------------------------------
-FROM golang:1.22 AS devlop
+FROM golang:1.23 AS devlop
 
 WORKDIR /api
 
+RUN go install github.com/air-verse/air@latest
+
 COPY go.mod main.go ./
 
-RUN go mod tidy
+# RUN go mod tidy
+RUN go mod download
 # ルートディレクトリの中身を app フォルダにコピーする
-COPY . .
+# COPY . .
 
-RUN go install github.com/air-verse/air@latest
-CMD ["air"]
+# CMD ["air"]
+CMD ["air","-c",".air.toml"]

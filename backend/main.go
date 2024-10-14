@@ -12,6 +12,13 @@ import (
 	"github.com/rs/cors"
 )
 
+//認証情報
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+
 // タスク構造体
 type Task struct {
 	ID   int    `json:"Task_Id"`
@@ -38,14 +45,13 @@ func init() {
 
 func main() {
 	mux := http.NewServeMux() //マルチプレクサ。HTTPメソッドを指定してハンドラを呼び分けられるように登録可能。
-	//リクエストハンドラ
-	// http.HandleFunc("/tasks", tasksHandler)
-	// http.HandleFunc("/tasks/", tasksHandler)
-	
-	// HTTPメソッドとパスを指定して、関数を呼び出せば、swich-caseの処理は必要ない
-	mux.HandleFunc("/tasks", tasksHandler)
-	mux.HandleFunc("/tasks/", tasksHandler)
-  // log.Fatal(http.ListenAndServe(":8080", nil))
+
+	mux.HandleFunc("/login", login)
+	mux.HandleFunc("GET /tasks",getTasks)
+	mux.HandleFunc("POST /tasks",addTask)
+	mux.HandleFunc("DELETE /tasks",deleteTask)
+	mux.HandleFunc("PUT /tasks",toggleTaskDone)
+
 	// CORSミドルウェアを設定
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000"},
@@ -59,21 +65,26 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
-//以下の処理はマルチプレクサを用いた処理に適していないため、修正が必要と思われる。
-func tasksHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-			getTasks(w, r) // 全てのtaskの取得
-	case "POST":
-			addTask(w, r) // 新しいtaskの追加
-	case "DELETE":
-			deleteTask(w, r) // 指定のtaskを削除
-	case "PUT":
-			toggleTaskDone(w, r) // task状態の変更
-	default:
-			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+//ログイン処理
+func login(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+	}
+
+	// 固定のユーザー名とパスワードで認証
+	if creds.Username == "user" && creds.Password == "password" {
+			// ログイン成功
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Login successful"))
+	} else {
+			// 認証失敗
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	}
 }
+
 
 //Task一覧取得処理
 func getTasks(w http.ResponseWriter, r *http.Request) {
