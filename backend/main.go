@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,9 +22,9 @@ type Credentials struct {
 
 // タスク構造体
 type Task struct {
-	ID   int    `json:"Task_Id"`
+	ID   int    `json:"Task_ID"`
 	Name string `json:"Task_Name"`
-	Done bool   `json:"Task_Done"`
+	Done string   `json:"Task_Done"`
 }
 
 var db *sql.DB
@@ -44,6 +45,7 @@ func init() {
 }
 
 func main() {
+	fmt.Println("Hello golang from docker!")
 	mux := http.NewServeMux() //マルチプレクサ。HTTPメソッドを指定してハンドラを呼び分けられるように登録可能。
 
 	mux.HandleFunc("/login", login)
@@ -88,7 +90,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 //Task一覧取得処理
 func getTasks(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT Task_Id, Task_Name, Task_Done FROM Tasks")
+	rows, err := db.Query("SELECT Task_ID, Task_Name, Task_Done FROM Tasks")
 	if err != nil {
 		http.Error(w, "データベースエラー", http.StatusInternalServerError)
 		return
@@ -103,6 +105,11 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "データ取得エラー", http.StatusInternalServerError)
 			return
 		}
+		// デバッグ用: スキャン後のフィールドを出力
+		// fmt.Println("デバッグ中・・・")
+		// fmt.Println("ID:", task.ID)
+		// fmt.Println("Name:", task.Name)
+		// fmt.Println("Done (enum value):", task.Done)
 		tasks = append(tasks, task)
 	}
 
