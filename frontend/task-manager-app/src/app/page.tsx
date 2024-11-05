@@ -14,12 +14,26 @@ export default function Home() {
   const [newTask, setNewTask] = useState<string>('');
 
   useEffect(() => {
-    fetchTasks();
+    setTimeout(() => {
+      fetchTasks();
+    }, 100); // 100ミリ秒程度の遅延
   }, []);
   
   // タスクをGoAPIから取得
   const fetchTasks = async () => {
-    const res = await fetch('http://localhost:8080/tasks');
+    const res = await fetch('http://localhost:8080/tasks', {
+    // const res = await fetch('/api/tasks', {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include"
+    });
+    if (!res.ok){
+      const errorText = await res.json(); // JSONでない場合に備えてテキストとして取得
+      console.log('Error fetching tasks:', errorText);
+      return;
+    }
     const data = await res.json();
     console.log('tasks : ',data);
     setTasks(data);
@@ -28,7 +42,6 @@ export default function Home() {
   // タスク追加
   const addTask = async () => {
     if (!newTask) return;
-
     const res = await fetch('http://localhost:8080/tasks', {
       method: 'POST',
       headers: {
@@ -73,7 +86,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="justify-center items-center min-h-screen mx-auto p-4 bg-gray-100">
       <h1 className="text-gray-500 text-2xl font-semibold mb-6 text-center">Task Manager</h1>
       <div className="mb-4">
         <input

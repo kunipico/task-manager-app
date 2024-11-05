@@ -16,7 +16,7 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask}) => {
   return (
-    <div key={task.Task_Id} className=" bg-gray-50 border border-gray-500 shadow-md rounded-lg p-6">
+    <div key={task.Task_Id} className="bg-white shadow-md rounded-lg p-6">
       <h2 className="text-gray-700 text-xl mb-2">{task.Task_Name}</h2>
       <p className={`text-lg ${task.Task_Done ? 'text-green-400' : 'text-red-400'}`}>
         {task.Task_Done ? '完了' : '未完了'}
