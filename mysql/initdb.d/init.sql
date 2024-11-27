@@ -18,31 +18,39 @@ DROP TABLE IF EXISTS Docs;
 
 -- Usersテーブル
 CREATE TABLE Users (
-    User_ID INT AUTO_INCREMENT PRIMARY KEY,
-    User_Name VARCHAR(255) NOT NULL,
-    Emailaddress VARCHAR(50) NOT NULL,
-    Password VARCHAR(255) NOT NULL
+  User_ID INT AUTO_INCREMENT PRIMARY KEY,
+  User_Name VARCHAR(255) NOT NULL,
+  Emailaddress VARCHAR(50) NOT NULL,
+  Password VARCHAR(255) NOT NULL
 )CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Tasksテーブル
 CREATE TABLE Tasks (
-    Task_ID INT AUTO_INCREMENT PRIMARY KEY,
-    User_ID INT NOT NULL,
-    Task_Name VARCHAR(255) NOT NULL,
-    Task_Description TEXT,
-    Task_Done ENUM('Standby','Inprogress','Done'),
-    Create_At DATETIME,
-    FOREIGN KEY (User_ID) REFERENCES Users(User_ID) ON DELETE CASCADE
+  Task_ID INT AUTO_INCREMENT PRIMARY KEY,
+  User_ID INT NOT NULL,
+  Task_Name VARCHAR(255) NOT NULL,
+  Task_Details TEXT,
+  Task_Done ENUM('Standby','Inprogress','Done'),
+  Create_At DATETIME,
+  FOREIGN KEY (User_ID) REFERENCES Users(User_ID) ON DELETE CASCADE
 )CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Docsテーブル
 CREATE TABLE Docs (
-    Docs_ID INT AUTO_INCREMENT PRIMARY KEY,
-    Task_ID INT NOT NULL,
-    Create_At DATETIME,
-    FOREIGN KEY (Task_ID) REFERENCES Tasks(Task_ID) ON DELETE CASCADE
+  Docs_ID INT AUTO_INCREMENT PRIMARY KEY,
+  Task_ID INT NOT NULL,
+  Create_At DATETIME,
+  FOREIGN KEY (Task_ID) REFERENCES Tasks(Task_ID) ON DELETE CASCADE
 )CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+-- Timesテーブル
+CREATE TABLE Times (
+  Time_ID INT AUTO_INCREMENT PRIMARY KEY,
+  Task_ID INT NOT NULL,
+  setStatus ENUM('Start','Stop'),
+  setTime DATETIME,
+  FOREIGN KEY (Task_ID) REFERENCES Tasks(Task_ID) ON DELETE CASCADE
+)CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- ALTER TABLE Tasks CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 

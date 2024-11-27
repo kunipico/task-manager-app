@@ -25,10 +25,8 @@ export default function LoginPage() {
       const data = await res.text();
       setMessage(data);
       if (res.ok) {
-        setTimeout(() => {
-          // ログイン成功時にメインページにリダイレクト
-          router.push("/");
-        }, 1000); // 100ミリ秒程度の遅延
+        // ログイン成功時にメインページにリダイレクト
+        router.push("/");
         return
       }
     } catch (error) {

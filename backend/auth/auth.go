@@ -184,6 +184,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
         Secure:   false, // HTTPSでのみ送信
         Path:     "/",
         SameSite: http.SameSiteLaxMode,
+				MaxAge: 0, //Maxage:0でセッションが閉じられるまで。Maxage:NでN秒後まで。
       })
       // ログイン成功メッセージを送信
       w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -214,8 +215,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 // JWTを生成する関数
 func GenerateJWT(userinfo string) (string, error) {
-	// expirationTime := time.Now().Add(24 * time.Hour)
-  expirationTime := time.Now().Add(5 * time.Minute)
+  expirationTime := time.Now().Add(7* 24 * time.Hour)
 	claims := &Claims{
 		Userinfo : userinfo,
 		StandardClaims: jwt.StandardClaims{
@@ -230,5 +230,41 @@ func GenerateJWT(userinfo string) (string, error) {
 
 // ログアウト処理
 func Logout(w http.ResponseWriter, r *http.Request) {
-	
+	// Cookieの内容を確認
+	cookie, err := r.Cookie("token")
+	fmt.Println("Cookie : ", cookie)
+  if err != nil {
+    http.Error(w, `{"error":"Nothing Cookie!"}`, http.StatusUnauthorized)
+		fmt.Println("Nothing Cookie!!!")
+    return
+  }
+  tokenStr := cookie.Value
+  // JWTの検証
+  claims := &Claims{}
+  token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+    return jwtKey, nil
+  })
+  if err != nil || !token.Valid {
+    http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
+    return
+  }	
+
+	// JWTをCookieにセット
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    cookie.Value,
+		HttpOnly: true,
+		Secure:   false, // HTTPSでのみ送信
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		MaxAge: -1, //Maxage:-Nで即時削除
+	})
+	// ログイン成功メッセージを送信
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000/login")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logout successful"))
+	return
 }
