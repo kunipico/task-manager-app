@@ -1,6 +1,6 @@
 // components/Card.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface Task {
   Task_ID: number;
@@ -14,9 +14,10 @@ interface CardProps {
   onToggleTask: (taskId: number) => void;
   onDeleteTask: (taskId: number) => void;
   onOpenDocs: (taskId: number) => void;
+  onOpenModal: (taskId: number, taskName:string) => void;
 }
 
-const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask}) => {
+const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDocs, onOpenModal}) => {
   // 状態に応じた色とテキストを決定
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -51,6 +52,15 @@ const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask}) => {
           // onClick={() => onOpenDocs(task.Task_Id)}
         >
           Docs
+        </button>
+        <button
+          className="border border-gray-300  hover:bg-green-500 hover:text-white bg-white text-green-500 bg py-2 px-1 rounded"
+          onClick={(e) => {
+            e.stopPropagation(); // 親要素への伝播を防ぐ
+            onOpenModal(task.Task_ID,task.Task_Name)
+          }}
+        >
+          TimeAnalysis
         </button>
         <button
           className="text-red-400 hover:bg-red-400 hover:text-white rounded px-1 border border-red-400"

@@ -8,6 +8,7 @@ import (
 	"task-manager-api/auth"
 	"task-manager-api/db"
 	"task-manager-api/task"
+	"task-manager-api/times"
 
 	// _ "github.com/go-sql-driver/mysql"
 	"github.com/rs/cors"
@@ -26,6 +27,8 @@ func main() {
 	mux.HandleFunc("POST /tasks",task.AddTask)
 	mux.HandleFunc("DELETE /tasks",task.DeleteTask)
 	mux.HandleFunc("PUT /tasks/{id}",task.ToggleTaskDone)
+	mux.HandleFunc("GET /tasks/time-info/{id}",times.GetTimeInfo)
+
 
 	// CORSミドルウェアを設定
 	c := cors.New(cors.Options{

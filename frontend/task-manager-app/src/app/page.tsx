@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import TaskCard from '../components/Cards';
-import Modal from '../components/Modal'
+import AddTaskModal from '../components/AddTaskModal'
+import TimeAnalysisModal from '../components/TimeAnalysisModal'
+
 import { useRouter } from 'next/navigation';
 
 
@@ -15,9 +17,25 @@ interface Task {
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  // const [newTask, setNewTask] = useState<string>('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const router = useRouter(); // useRouterをLoginPage内で定義
+
+  // 時間解析モーダル処理
+  const [isTimeAnalysisModalOpen, setIsTimeAnalysisModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedTaskName, setSelectedTaskName] = useState<string | null>(null);
+  // モーダルを開く
+  const openTimeAnalysisModal = (taskId:number, taskName: string) => {
+    setSelectedTaskId(taskId);
+    setSelectedTaskName(taskName);
+    setIsTimeAnalysisModalOpen(true);
+  }
+  // モーダルを閉じる
+  const closeTimeAnalysisModal = () => {
+    setSelectedTaskId(null);
+    setSelectedTaskName(null);
+    setIsTimeAnalysisModalOpen(false);
+  }
 
   useEffect(() => {
     fetchTasks();
@@ -45,10 +63,10 @@ export default function Home() {
   };
 
   // モーダルを開く
-  const openModal = () => setIsModalOpen(true);
+  const openAddTaskModal = () => setIsAddTaskModalOpen(true);
 
   // モーダルを閉じる
-  const closeModal = () => setIsModalOpen(false);
+  const closeAddTaskModal = () => setIsAddTaskModalOpen(false);
 
   // タスクを追加
   const addTask = async (taskName: string, taskDetails: string) => {
@@ -142,7 +160,7 @@ export default function Home() {
         <div className="mb-4">
           <button
             className="border border-gray-300  hover:bg-green-500 hover:text-white bg-white text-green-500 bg py-2 px-4 rounded"
-            onClick={openModal}
+            onClick={openAddTaskModal}
           >
             追加
           </button>
@@ -166,6 +184,7 @@ export default function Home() {
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
               onOpenDocs={openDocs}
+              onOpenModal={openTimeAnalysisModal}
             />
           ))
         ) : (
@@ -173,10 +192,18 @@ export default function Home() {
         )}
       </div>
        {/* モーダルコンポーネントを使用 */}
-       <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
+       <AddTaskModal
+        isOpen={isAddTaskModalOpen}
+        onClose={closeAddTaskModal}
         onSubmit={addTask}
+      />
+      {/* モーダルコンポーネントを使用 */}
+      <TimeAnalysisModal
+        taskName={selectedTaskName!}
+        taskId={selectedTaskId!}
+        isOpen={isTimeAnalysisModalOpen}
+        onClose={closeTimeAnalysisModal}
+        // onSubmit={task.Task_ID}
       />
     </div>
   );

@@ -66,6 +66,7 @@ func ExtractUserIDAndParam(r *http.Request) (string, string, error) {
 	
 	// URLパスからパラメータを取得
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
+
 	return userID, idStr, nil
 }
 
@@ -128,14 +129,6 @@ func AddTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"データベースエラー"}`, http.StatusInternalServerError)
 		return
 	}
-	// id, err := result.LastInsertId()
-	// if err != nil {
-	// 	http.Error(w, `{"error":"ID取得エラー"}`, http.StatusInternalServerError)
-	// 	return
-	// }
-	// task.ID = int(id)
-	// w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(task)
 }
 
 //Task削除処理

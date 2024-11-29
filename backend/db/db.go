@@ -12,7 +12,7 @@ var DB *sql.DB
 func InitDB() {
 	// データベースに接続
 	var err error
-	dsn := "mysql:mysql#MYSQL123@tcp(db:3306)/TaskManager?charset=utf8mb4"
+	dsn := "mysql:mysql#MYSQL123@tcp(db:3306)/TaskManager?charset=utf8mb4&parseTime=true"
 	DB, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal("データベース接続エラー: ", err)
