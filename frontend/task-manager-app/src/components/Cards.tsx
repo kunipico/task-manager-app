@@ -1,6 +1,6 @@
 // components/Card.tsx
 
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
 
 interface Task {
   Task_ID: number;
@@ -13,11 +13,11 @@ interface CardProps {
   task: Task;
   onToggleTask: (taskId: number) => void;
   onDeleteTask: (taskId: number) => void;
-  onOpenDocs: (taskId: number) => void;
-  onOpenModal: (taskId: number, taskName:string) => void;
+  onOpenDocs: (taskId: number, taskName: string) => void;
+  onOpenTimeAnalysis: (taskId: number, taskName:string) => void;
 }
 
-const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDocs, onOpenModal}) => {
+const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDocs, onOpenTimeAnalysis}) => {
   // 状態に応じた色とテキストを決定
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -49,7 +49,10 @@ const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDoc
       <div className="flex justify-between mt-4">
         <button
           className="border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white rounded px-1"
-          // onClick={() => onOpenDocs(task.Task_Id)}
+          onClick={(e) => {
+            e.stopPropagation(); // 親要素への伝播を防ぐ
+            onOpenDocs(task.Task_ID, task.Task_Name)
+          }}
         >
           Docs
         </button>
@@ -57,7 +60,7 @@ const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDoc
           className="border border-gray-300  hover:bg-green-500 hover:text-white bg-white text-green-500 bg py-2 px-1 rounded"
           onClick={(e) => {
             e.stopPropagation(); // 親要素への伝播を防ぐ
-            onOpenModal(task.Task_ID,task.Task_Name)
+            onOpenTimeAnalysis(task.Task_ID,task.Task_Name)
           }}
         >
           TimeAnalysis

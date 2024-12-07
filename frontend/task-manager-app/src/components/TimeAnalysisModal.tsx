@@ -15,7 +15,8 @@ type TimeInfo = {
   thisMonth: string;
 };
 
-export default function TaskModal({taskName, taskId, isOpen, onClose }: TaskModalProps) {
+export default function TimeAnalysisModal({taskName, taskId, isOpen, onClose }: TaskModalProps) 
+{
   const [timeInfo, setTimeInfo] = useState<TimeInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +38,8 @@ export default function TaskModal({taskName, taskId, isOpen, onClose }: TaskModa
           },
           credentials: "include",
         });
-        if (res.ok) {
-
-        };
-
+        // if (res.ok) {
+        // };
         const data = await res.json();
         setTimeInfo(data);
       } catch (err: any) {

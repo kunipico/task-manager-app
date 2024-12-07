@@ -110,7 +110,6 @@ func AddTask(w http.ResponseWriter, r *http.Request) {
 
   var task Task
 	err = json.NewDecoder(r.Body).Decode(&task)
-
 	if err != nil {
     fmt.Print("JSONデコードエラー")
 		http.Error(w, err.Error(), http.StatusBadRequest)
