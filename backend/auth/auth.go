@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -41,11 +42,11 @@ type Claims struct {
 
 // ユーザ登録処理
 func Signup(w http.ResponseWriter, r *http.Request) {
-  // リクエストボディからJSONデータを読み込む
-  var requestBody struct {
-      Username string `json:"username"`
-      Password string `json:"password"`
-      Email    string `json:"email"`
+	// リクエストボディからJSONデータを読み込む
+	var requestBody struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
   }
 
   // JSONをデコード
@@ -80,33 +81,63 @@ func Signup(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  //ユーザー登録済み確認
-  rows, err := db.DB.Query("SELECT User_ID from Users WHERE Emailaddress=?", email)
-  if err != nil {
-		http.Error(w, "データベースエラー", http.StatusInternalServerError)
-		return
+  // DBから情報取得
+	var userID int
+	err = db.DB.QueryRow("SELECT User_ID, Password FROM Users WHERE Emailaddress = ?", email).Scan(&userID)
+	fmt.Println("DBからUser情報取得 err: ",err)
+	if err == sql.ErrNoRows {
+			// 重複するユーザーがいない場合の処理
+			// ユーザー登録処理を進める
+			fmt.Println("メールアドレスが未登録です。登録を進めます。")
+
+			// ユーザー情報をデータベースに挿入
+			query := "INSERT INTO Users (User_Name, Emailaddress, Password) VALUES (?, ?, ?)"
+			result, err := db.DB.Exec(query, username, email, string(hashedPassword))
+			if err != nil {
+				http.Error(w, "ユーザーの登録に失敗しました", http.StatusInternalServerError)
+				log.Println("DB Insert Error:", err)
+				return
+			}
+			// 成功メッセージを返す
+			// fmt.Fprintf(w, "ユーザー登録が完了しました。")
+
+			// 新しいユーザーIDを取得
+			newUserID, err := result.LastInsertId()
+			fmt.Println("newUserID: ",newUserID)
+			if err != nil {
+				http.Error(w, "ユーザーIDの取得に失敗しました", http.StatusInternalServerError)
+				log.Println("LastInsertId Error:", err)
+				return
+			}
+
+			// JWTを生成し、クライアントに返す処理をここで実行
+			signupToken, err := GenerateJWT(strconv.FormatInt(newUserID,10))
+			if err != nil {
+				fmt.Println("JWT生成エラー:", err)
+				return
+			}
+			// クライアントにJWTを返す（例として標準出力）
+			fmt.Println("JWT:", signupToken)
+			// トークンをレスポンスとして返す
+			// JWTをCookieにセット
+			http.SetCookie(w, &http.Cookie{
+				Name:     "token",
+				Value:    signupToken,
+				HttpOnly: true,
+				Secure:   false, // HTTPSでのみ送信
+				Path:     "/",
+				SameSite: http.SameSiteLaxMode,
+				MaxAge: 0, //Maxage:0でセッションが閉じられるまで。Maxage:NでN秒後まで。
+			})
+			// ログイン成功メッセージを送信
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("SignUp successful"))
+	} else {
+			http.Error(w, "既に登録済みのメールアドレスです", http.StatusBadRequest)
 	}
-	defer rows.Close()
-	if rows.Next() {
-    http.Error(w, "すでに登録済みです。ログインページからログインしてください。", http.StatusConflict)
-		return
-  }
-
-  // ユーザー情報をデータベースに挿入
-  query := "INSERT INTO Users (User_Name, Emailaddress, Password) VALUES (?, ?, ?)"
-  _, err = db.DB.Exec(query, username, email, string(hashedPassword))
-  if err != nil {
-    http.Error(w, "ユーザーの登録に失敗しました", http.StatusInternalServerError)
-    log.Println("DB Insert Error:", err)
-    return
-  }
-
-  // 成功メッセージを返す
-  fmt.Fprintf(w, "ユーザー登録が完了しました")
-
-  // 返すのは成功メッセージではなくトークン情報。
-  // Next.js側で認証されたことを確認しメインページにリダイレクトする。
-  // ログイン機能を実装した後で、ここにも同様の処理を追加する。
 }
 
 //ユーザー登録確認用
@@ -188,11 +219,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
       })
       // ログイン成功メッセージを送信
       w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-      // w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000/login")
       w.Header().Set("Access-Control-Allow-Credentials", "true")
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(http.StatusOK)
-      w.Write([]byte("Login successful"))
+      // w.Write([]byte("Login successful"))
       
       return
 	  } else {
@@ -266,5 +296,4 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Logout successful"))
-	return
 }

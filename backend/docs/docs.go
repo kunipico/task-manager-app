@@ -102,7 +102,7 @@ func AddDocument(w http.ResponseWriter, r *http.Request) {
   fmt.Println("Documents: ",NewDoc)
 
 	// データベースにタスクを追加
-	_, err = db.DB.Exec("INSERT INTO Docs (Task_ID, Documents, Create_At) VALUES (?, ?, ?)", taskID, NewDoc.Doc, currentTime)
+	_, err = db.DB.Exec("INSERT INTO Docs (Task_ID, Documents, SetTime) VALUES (?, ?, ?)", taskID, NewDoc.Doc, currentTime)
 	if err != nil {
 		http.Error(w, `{"error":"データベースエラー"}`, http.StatusInternalServerError)
 		return

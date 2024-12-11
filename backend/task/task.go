@@ -1,6 +1,7 @@
 package task
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -43,6 +44,8 @@ func MakeTimeStamp()(time.Time, error){
 	return currentTime,nil
 }
 
+
+
 // CookieとJWTの検証処理
 func ExtractUserIDAndParam(r *http.Request) (string, string, error) {
 	// Cookieの内容を確認
@@ -64,11 +67,19 @@ func ExtractUserIDAndParam(r *http.Request) (string, string, error) {
 	// クレームからユーザーIDを取得
 	userID := claims.Userinfo
 	
+	// クレーム内のIDをDBから検索
+	err = db.DB.QueryRow("SELECT User_ID FROM Users WHERE User_ID = ?", userID).Scan()
+	if err == sql.ErrNoRows {
+		return "", "", fmt.Errorf("Unauthorized")
+	}
+
 	// URLパスからパラメータを取得
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
 
 	return userID, idStr, nil
 }
+
+
 
 //Task一覧取得処理
 func GetTasks(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +111,8 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
+
+
 //Task追加処理
 func AddTask(w http.ResponseWriter, r *http.Request) {
 	userID, _, err := ExtractUserIDAndParam(r)
@@ -130,49 +143,68 @@ func AddTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
+
 //Task削除処理
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	// Cookieの内容を確認
-	cookie, err := r.Cookie("token")
-	fmt.Println("Cookie : ", cookie)
-  if err != nil {
-    http.Error(w, `{"error":"Nothing Cookie!"}`, http.StatusUnauthorized)
-		fmt.Println("Nothing Cookie!!!")
-    return
-  }
-  tokenStr := cookie.Value
-  // JWTの検証
-  claims := &Claims{}
-  token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-    return jwtKey, nil
-  })
-  if err != nil || !token.Valid {
-    http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
-    return
-  }
-  
-  idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
+	_, idStr, err := ExtractUserIDAndParam(r)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusUnauthorized)
+		return
+	}
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "無効なIDです", http.StatusBadRequest)
 		return
 	}
 
-	// データベースからタスクを削除
-	result, err := db.DB.Exec("DELETE FROM Tasks WHERE Task_Id = ?", id)
+	fmt.Println("idStr, id : ",idStr,id)
+
+	// タスク状態取得
+	var done string
+	err = db.DB.QueryRow("SELECT Task_Done FROM Tasks WHERE Task_ID = ?", id).Scan(&done)
 	if err != nil {
-		http.Error(w, "データベースエラー", http.StatusInternalServerError)
+		http.Error(w, `{"error":"データベースエラー1"}`, http.StatusInternalServerError)
 		return
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		http.Error(w, "指定されたIDのタスクが見つかりません", http.StatusNotFound)
-		return
+	fmt.Println("done: ",done)
+
+	if done == "Done" {
+		// データベースからタスクを削除
+		_, err := db.DB.Exec("UPDATE Tasks SET Task_Done = 'Standby' WHERE Task_ID = ?", id)
+		if err != nil {
+			http.Error(w, "データベースエラー", http.StatusInternalServerError)
+			return
+		}
+	}else{
+		_, err := db.DB.Exec("UPDATE Tasks SET Task_Done = 'Done' WHERE Task_ID = ?", id)
+		if err != nil {
+			http.Error(w, "データベースエラー", http.StatusInternalServerError)
+			return
+		}
+		if done == "Inprogress"{
+			currentTime,err := MakeTimeStamp()
+			if err != nil {
+				fmt.Println("Error generating timestamp:", err)
+				return
+			}
+			// 実行中→停止　時間記録
+			_, err = db.DB.Exec("INSERT INTO Times (Task_ID, SetStatus,SetTime) VALUES (?,?,?)",id,"Stop",currentTime)
+			if err != nil {
+				http.Error(w, `{"error":"データベースエラー3"}`, http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	
 }
+
+
 
 //Task状態変更処理
 func ToggleTaskDone(w http.ResponseWriter, r *http.Request) {
@@ -181,6 +213,7 @@ func ToggleTaskDone(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error generating timestamp:", err)
 		return
 	}
+	
 	userID, idStr, err := ExtractUserIDAndParam(r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusUnauthorized)
@@ -226,7 +259,7 @@ func ToggleTaskDone(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// 実行中→停止　時間記録
-		_, err = db.DB.Exec("INSERT INTO Times (Task_ID, setStatus,setTime) VALUES (?,?,?)",InprogressTaskId,"Stop",currentTime)
+		_, err = db.DB.Exec("INSERT INTO Times (Task_ID, SetStatus,SetTime) VALUES (?,?,?)",InprogressTaskId,"Stop",currentTime)
 		if err != nil {
 			http.Error(w, `{"error":"データベースエラー3"}`, http.StatusInternalServerError)
 			return
@@ -235,7 +268,7 @@ func ToggleTaskDone(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("updatedTask.Done, id: ", updatedTask.Done, id)
 
-	if updatedTask.Done == "Inprogress" {
+	if updatedTask.Done == "Inprogress"{
 		result, err := db.DB.Exec("UPDATE Tasks SET Task_Done = ? WHERE Task_ID = ?", updatedTask.Done, id)
 		if err != nil {
 				http.Error(w, `{"error":"データベースエラー4"}`, http.StatusInternalServerError)
@@ -247,7 +280,7 @@ func ToggleTaskDone(w http.ResponseWriter, r *http.Request) {
 				return
 		}
 		// 停止→実行中　時間記録
-		_, err = db.DB.Exec("INSERT INTO Times (Task_ID, setStatus,setTime) VALUES (?,?,?)",id,"Start",currentTime)
+		_, err = db.DB.Exec("INSERT INTO Times (Task_ID, SetStatus,SetTime) VALUES (?,?,?)",id,"Start",currentTime)
 		if err != nil {
 			http.Error(w, `{"error":"データベースエラー5"}`, http.StatusInternalServerError)
 			return

@@ -21,13 +21,13 @@ func main() {
 	fmt.Println("Hello golang")
 	mux := http.NewServeMux() //マルチプレクサ。HTTPメソッドを指定してハンドラを呼び分けられるように登録可能。
 
-	mux.HandleFunc("/login", auth.Login)
+	mux.HandleFunc("POST /login", auth.Login)
   mux.HandleFunc("DELETE /logout", auth.Logout)
   mux.HandleFunc("POST /signup", auth.Signup)
   // mux.HandleFunc("/users", auth.Users)    //ユーザ登録確認用
 	mux.HandleFunc("GET /tasks",task.GetTasks)
 	mux.HandleFunc("POST /tasks",task.AddTask)
-	mux.HandleFunc("DELETE /tasks",task.DeleteTask)
+	mux.HandleFunc("DELETE /tasks/{id}",task.DeleteTask)
 	mux.HandleFunc("PUT /tasks/{id}",task.ToggleTaskDone)
 	mux.HandleFunc("GET /tasks/time-info/{id}",times.GetTimeInfo)
 	mux.HandleFunc("GET /tasks/documents/{id}",docs.GetDocuments)
@@ -36,9 +36,8 @@ func main() {
 
 	// CORSミドルウェアを設定
 	c := cors.New(cors.Options{
-		// AllowedOrigins: []string{"http://localhost:3000/","http://localhost:3000/login"},
     AllowedOrigins: []string{"http://localhost:3000","http://next-app:3000"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE","OPTION"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE","OPTIONS"},
 		AllowedHeaders: []string{"Content-Type","Authorization"},
 	  AllowCredentials: true,
 

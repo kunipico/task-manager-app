@@ -67,7 +67,10 @@ const Card: React.FC<CardProps> = ({ task, onToggleTask, onDeleteTask, onOpenDoc
         </button>
         <button
           className="text-red-400 hover:bg-red-400 hover:text-white rounded px-1 border border-red-400"
-          onClick={() => onDeleteTask(task.Task_ID)}
+          onClick={(e) => {
+            e.stopPropagation(); // 親要素への伝播を防ぐ
+            onDeleteTask(task.Task_ID)
+          }}
         >
           Done
         </button>

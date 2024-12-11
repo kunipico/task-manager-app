@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// import { login } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 

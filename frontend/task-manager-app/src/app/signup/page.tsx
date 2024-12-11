@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-// import { signup } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter(); // useRouterをLoginPage内で定義
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,32 +18,22 @@ export default function SignupPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // next:"no-store"
         },
         body: JSON.stringify({ username, email, password }),
+        credentials: "include",
       });
       const data = await res.text();
       setMessage(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        setMessage(error.message);  // エラーメッセージをセット
+      if (res.ok) {
+        // ログイン成功時にメインページにリダイレクト
+        router.push("/");
+        return
       }
+    } catch (error) {
+      setMessage("ユーザー登録に失敗しました。");  // エラーメッセージをセット
     }
   }
-  // try {
-  //     const response = await signup(username, email, password);
-  //     setMessage(response);
-  //     console.log('message1: ',message);
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       setMessage(error.message);  // エラーメッセージをセット
-  //       console.log('error1: ',error);
-  //     } else {
-  //       setMessage("予期しないエラーが発生しました");
-  //       console.log('error2: ',error);
-  //     }
-  //     console.log('message2: ',message);
-  //   }
-  // };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

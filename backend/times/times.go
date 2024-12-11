@@ -21,10 +21,10 @@ type TimeInfo struct {
 // calculateTaskTime は、指定された期間に基づいて時間を積算します
 func calculateTaskTime(taskID int, startDate time.Time) (time.Duration, error) {
 	query := `
-		SELECT setStatus, setTime
+		SELECT SetStatus, SetTime
 		FROM Times
-		WHERE Task_ID = ? AND setTime >= ?
-		ORDER BY setTime ASC
+		WHERE Task_ID = ? AND SetTime >= ?
+		ORDER BY SetTime ASC
 	`
 	rows, err := db.DB.Query(query, taskID, startDate)
 	if err != nil {
@@ -40,24 +40,24 @@ func calculateTaskTime(taskID int, startDate time.Time) (time.Duration, error) {
 
 	for rows.Next() {
 		var status string
-		var setTime time.Time
+		var SetTime time.Time
 
-		if err := rows.Scan(&status, &setTime); err != nil {
+		if err := rows.Scan(&status, &SetTime); err != nil {
 			return 0, fmt.Errorf("行の読み取りエラー: %v", err)
 		}
 
 		if status == "Start" {
-			prevStartTime = setTime
+			prevStartTime = SetTime
 			inProgress = true
 		} else if status == "Stop" && inProgress {
-			totalDuration += setTime.Sub(prevStartTime)
+			totalDuration += SetTime.Sub(prevStartTime)
 			inProgress = false
 		}
 	}
 
 	// 処理が途中で終了した場合、現在時刻までを計算
 	if inProgress {
-		totalDuration += time.Now().Sub(prevStartTime)
+		totalDuration += time.Since(prevStartTime)
 	}
 
 	return totalDuration, nil

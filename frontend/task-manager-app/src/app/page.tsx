@@ -22,8 +22,6 @@ export default function Home() {
 
   const router = useRouter(); // useRouterをLoginPage内で定義
 
-
-
   // 時間解析モーダル処理
   const [isTimeAnalysisModalOpen, setIsTimeAnalysisModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
@@ -81,10 +79,25 @@ export default function Home() {
       return;
     }
     const data = await res.json();
-    console.log('tasks : ',data);
-    setTasks(data);
-  };
 
+    if (!data || data.length === 0) {
+      console.log("No tasks found.");
+      setTasks([]); // 空の配列を設定
+      return;
+    }
+
+    // タスクをソート
+    const sortedTasks = data.sort((a: Task, b: Task) => {
+      if (a.Task_Done === "Done" && b.Task_Done !== "Done") {
+        return 1; // a を後ろに
+      } else if (a.Task_Done !== "Done" && b.Task_Done === "Done") {
+        return -1; // b を後ろに
+      }
+      return 0; // それ以外はそのまま
+    });
+    setTasks(sortedTasks);
+  }
+    
   // モーダルを開く
   const openAddTaskModal = () => setIsAddTaskModalOpen(true);
 
@@ -115,13 +128,16 @@ export default function Home() {
 
   // タスク削除
   const deleteTask = async (taskId: number) => {
-    const res = await fetch(`http://localhost:8080/tasks/${taskId}`, {
-      method: 'DELETE',
-    });
-
-    if (res.ok) {
-      fetchTasks(); // 削除後にタスク一覧を再取得
-    }
+      const res = await fetch(`http://localhost:8080/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },credentials: "include",
+      });
+      if (res.ok) {
+        fetchTasks(); // 削除後にタスク一覧を再取得
+      }
+    // }
   };
 
   // タスク状態の切り替え
@@ -172,10 +188,6 @@ export default function Home() {
     }
   };
 
-  // const openDocs = async (taskId: number) => {
-
-  // }
-
   return (
     <div className="justify-center items-center min-h-screen py-4 px-10 bg-gray-100">
       <h1 className="text-gray-500 text-2xl font-semibold mb-6 text-center">Task Manager</h1>
@@ -198,7 +210,7 @@ export default function Home() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks ? (
+        {tasks && tasks.length > 0 ? (
           tasks.map((task,index) => (
             <TaskCard
               // key={`${task.Task_Id}-${index}`}
@@ -211,7 +223,7 @@ export default function Home() {
             />
           ))
         ) : (
-          <p>タスクがありません。</p>
+          <p className="text-gray-500 text-center">タスクがありません。</p>
         )}
       </div>
        {/* モーダルコンポーネントを使用 */}
