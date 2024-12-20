@@ -31,15 +31,13 @@ export default function TimeAnalysisModal({taskName, taskId, isOpen, onClose }: 
       console.log('taskId: ',taskId)
 
       try {
-        const res = await fetch(`http://localhost:8080/tasks/time-info/${taskId}`, {
+        const res = await fetch(`/api/tasks/time-info/${taskId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: "include",
         });
-        // if (res.ok) {
-        // };
         const data = await res.json();
         setTimeInfo(data);
       } catch (err: any) {

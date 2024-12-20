@@ -21,6 +21,7 @@ type Document struct {
 // var documents = make(map[int][]Document)
 
 func GetDocuments(w http.ResponseWriter, r *http.Request){
+	fmt.Println("GetDocuments start !!!")
 	_, Str, err := task.ExtractUserIDAndParam(r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusUnauthorized)
@@ -36,12 +37,14 @@ func GetDocuments(w http.ResponseWriter, r *http.Request){
 	taskid, err := strconv.Atoi(strid)
 	fmt.Println("id : ",taskid)
 	if err != nil {
+		fmt.Println("taskIDエラー !!!")
 		http.Error(w, "無効なIDです1", http.StatusBadRequest)
 		return
 	}
   
   rows, err := db.DB.Query("SELECT Documents FROM Docs WHERE Task_ID= ?",taskid)
 	if err != nil {
+		fmt.Println("データベースクエリエラー !!!")
 		http.Error(w, `{"error":"データベースエラー"}`, http.StatusInternalServerError)
 		return
 	}
@@ -58,7 +61,7 @@ func GetDocuments(w http.ResponseWriter, r *http.Request){
 		docs = append(docs, doc)
 	}
 
-  fmt.Println("docs: ",docs)
+  fmt.Println("ドキュメントデータ取得成功!!! docs: ",docs)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(docs)
@@ -107,11 +110,4 @@ func AddDocument(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"データベースエラー"}`, http.StatusInternalServerError)
 		return
 	}
-
-
-
-
-
-
-	
 }

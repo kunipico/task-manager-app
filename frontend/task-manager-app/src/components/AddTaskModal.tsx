@@ -21,9 +21,6 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModal
     } else {
       alert('タスク名と詳細を入力してください');
     }
-    // onSubmit(taskName,taskDetails);
-    // setTaskName(''); // 入力内容をリセット
-    // onClose(); // モーダルを閉じる
   };
 
   return (
@@ -56,26 +53,6 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }: AddTaskModal
           >
             追加
           </button>
-        {/* <input
-          type="text"
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
-          placeholder="新しいタスクを入力"
-          className="w-full border border-gray-300 p-2 mb-4 rounded"
-        />
-        <div className="flex justify-end gap-2">
-          <button
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-            onClick={onClose}
-          >
-            キャンセル
-          </button>
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            onClick={handleSubmit}
-          >
-            追加
-          </button> */}
         </div>
       </div>
     </div>

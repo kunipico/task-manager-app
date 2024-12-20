@@ -21,6 +21,8 @@ RUN CGO_ENABLED=0 go build -o main /api/main.go
 # 最終的な image のビルドステージ
 FROM alpine:3.17 AS deploy
 
+RUN apk add --no-cache tzdata
+
 WORKDIR /api
 
 # ビルド用の image から実行ファイルをコピー
@@ -31,7 +33,7 @@ EXPOSE 8080
 CMD [ "./main" ]
 
 # Local -------------------------------------
-FROM golang:1.23 AS devlop
+FROM golang:1.23 AS develop
 
 WORKDIR /api
 

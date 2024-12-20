@@ -36,16 +36,15 @@ func main() {
 
 	// CORSミドルウェアを設定
 	c := cors.New(cors.Options{
-    AllowedOrigins: []string{"http://localhost:3000","http://next-app:3000"},
+    AllowedOrigins: []string{"http://localhost:3000","http://task-manager-app:3000"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE","OPTIONS"},
 		AllowedHeaders: []string{"Content-Type","Authorization"},
 	  AllowCredentials: true,
-
 	})
 
 	// CORSミドルウェアをHTTPサーバーに適用
 	handler := c.Handler(mux)
 
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal("サーバー起動失敗: ",http.ListenAndServe(":8080", handler))
 }
 

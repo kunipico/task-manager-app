@@ -22,42 +22,43 @@ export default function DocsModal({taskName, taskId, isOpen, onClose }: TaskModa
 
   useEffect(() => {
     if (!isOpen) return;
-
-    const fetchDocInfo = async () =>{
-      setLoading(true);
-      setError(null);
-      setDocuments([]);
-
-      // APIから既存のドキュメントを取得
-      try{
-        const res = await fetch(`http://localhost:8080/tasks/documents/${taskId}`,{
-          method : 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: "include",
-        });
-        if (!res.ok){
-          throw new Error(`Failed to fetch documents: ${res.statusText}`);
-        };
-        const data = await res.json();
-        console.log('data : ',data);
-        if (data != null) {
-          const contents = data.map((doc: { content: string }) => ({doc: doc.content}));
-          console.log('contents : ',contents);
-          setDocuments(contents);
-        } 
-      }catch(err:any){
-        setError(err.message || "An error occurred while fetching documents");
-      }finally{
-        setLoading(false);
-      }
-    };
     fetchDocInfo();
   },[isOpen, taskId]);
- 
-  if (!isOpen) return null;
 
+  if (!isOpen) return;
+  
+  const fetchDocInfo = async () =>{
+    setLoading(true);
+    setError(null);
+    setDocuments([]);
+
+    // APIから既存のドキュメントを取得
+    try{
+      const res = await fetch(`/api/tasks/documents/${taskId}`,{
+        method : 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: "include",
+      });
+      if (!res.ok){
+        throw new Error(`Failed to fetch documents: ${res.statusText}`);
+      };
+
+      const data = await res.json();
+      console.log('Modal !!! afterdata : ',data);
+      if (data != null) {
+        const contents = data.map((doc: { content: string }) => ({doc: doc.content}));
+        console.log('contents : ',contents);
+        setDocuments(contents);
+      } 
+    }catch(err:any){
+      setError(err.message || "An error occurred while fetching documents");
+    }finally{
+      setLoading(false);
+    }
+  };
+ 
   const handleAddDocument = async () => {
     if (!newDoc.trim()) {
       setError("Document content cannot be empty");
@@ -69,7 +70,7 @@ export default function DocsModal({taskName, taskId, isOpen, onClose }: TaskModa
 
     try{
     // 新しいドキュメントをAPIに送信 
-    const res = await fetch(`http://localhost:8080/tasks/documents/${taskId}`, {
+    const res = await fetch(`/api/tasks/documents/${taskId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -80,8 +81,8 @@ export default function DocsModal({taskName, taskId, isOpen, onClose }: TaskModa
     if(!res.ok){
       throw new Error(`Failed to add document: ${res.statusText}`);
     }
-    const addedDocument = await res.json();
-      setDocuments((prevDocs) => [...(prevDocs || []), addedDocument]);
+    // const addedDocument = await res.json();
+    //   setDocuments((prevDocs) => [...(prevDocs || []), addedDocument]);
       
     } catch (err: any) {
       setError(err.message || "An error occurred while adding the document");

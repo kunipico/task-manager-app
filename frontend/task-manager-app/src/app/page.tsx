@@ -8,7 +8,6 @@ import DocsModal from '../components/DocsModal'
 
 import { useRouter } from 'next/navigation';
 
-
 interface Task {
   Task_ID: number;
   Task_Name: string;
@@ -64,8 +63,7 @@ export default function Home() {
   
   // タスクをGoAPIから取得
   const fetchTasks = async () => {
-    const res = await fetch('http://localhost:8080/tasks', {
-    // const res = await fetch('/api/tasks', {
+    const res = await fetch('/api/tasks', {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +110,7 @@ export default function Home() {
       Task_Details: taskDetails,
       Task_Done: "Standby",
     };
-    const res = await fetch('http://localhost:8080/tasks', {
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,23 +119,23 @@ export default function Home() {
       body: JSON.stringify({ Task_Name: newTask.Task_Name, Task_Details:newTask.Task_Details, Task_Done: 'Standby' }),
     });
     if (res.ok) {
-      setTasks([...tasks, newTask]);
-      // fetchTasks();   // 再度タスクを取得
+      // setTasks([...tasks, newTask]);
+      fetchTasks();   // 再度タスクを取得
     };
   }
 
   // タスク削除
   const deleteTask = async (taskId: number) => {
-      const res = await fetch(`http://localhost:8080/tasks/${taskId}`, {
+      const res = await fetch(`/api/tasks/${taskId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-        },credentials: "include",
+        },
+        credentials: "include",
       });
       if (res.ok) {
         fetchTasks(); // 削除後にタスク一覧を再取得
       }
-    // }
   };
 
   // タスク状態の切り替え
@@ -153,11 +151,12 @@ export default function Home() {
       newStatus = 'Standby';
     }
 
-    const res = await fetch(`http://localhost:8080/tasks/${taskId}`, {
+    const res = await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-      },credentials: "include",
+      },
+      credentials: "include",
       body: JSON.stringify({ Task_Done: newStatus }),
     });
 
@@ -169,7 +168,7 @@ export default function Home() {
   const logout = async(e:React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8080/logout", {
+      const res = await fetch("/api/logout", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
